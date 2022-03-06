@@ -1,6 +1,6 @@
 import torch
 from torch import optim
-from curricula import all_curriculum, Curriculum
+from curricula import music_curriculum, Curriculum, all_curriculum
 
 from amc_dl.torch_plus import LogPathManager, SummaryWriters, \
     ParameterScheduler, OptimizerScheduler, \

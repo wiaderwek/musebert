@@ -16,7 +16,7 @@ class NoteMatrixDataset:
     train_length_path = 'data/nmat_train_length.npy'
     val_path = 'data/nmat_val.npy'
     val_length_path = 'data/nmat_val_length.npy'
-    pad_length = 100
+    pad_length = 1
 
     def __init__(self, data, length, pad_length):
         self.pad_length = pad_length
@@ -28,10 +28,11 @@ class NoteMatrixDataset:
         return len(self.length)
 
     def __getitem__(self, item):
+        #Check
         no = item * self.pad_length
         data = self.data[no: no + self.pad_length]
         length = self.length[item]
-        return data.astype(np.int64), length.astype(np.int8)
+        return data.astype(np.int64)[0], length.astype(np.int8) #data.astype(np.int64)[0]
 
     @classmethod
     def get_train_dataset(cls):
@@ -88,6 +89,8 @@ class PolyphonicDataset(Dataset):
         self.corrupter.fast_mode()
 
         # encode X_base to X_fac
+        if np.amin(nmat) < 0:
+            print(nmat)
         atr_mat, length = self.repr_autoenc.encode(nmat, length)
 
         # corrupt X_fac and relation matrices

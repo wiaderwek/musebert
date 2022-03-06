@@ -1,5 +1,9 @@
 import numpy as np
 import pretty_midi as pm
+import os
+import random
+
+
 
 
 ################################################################################
@@ -304,3 +308,110 @@ def nmat_to_notes(nmat, bpm, begin, vel=100.):
 #     # print(chroma)
 #     # print('----------')
 #     return np.concatenate([root_onehot, chroma, bass_onehot])
+
+
+def save_as_midi_file(midi_notes, name='out'):
+    music = pm.PrettyMIDI()
+    piano_program = pm.instrument_name_to_program('Acoustic Grand Piano')
+    piano = pm.Instrument(program=piano_program)
+
+    music.instruments.append(piano)
+
+    for note in midi_notes:
+        piano.notes.append(note)
+
+    music.write(name + '.mid')
+
+def midi_to_nmat(fn, bpm=120):
+    alpha = 60 / bpm
+    midi = pm.PrettyMIDI(fn)
+    notes = midi.instruments[0].notes
+    length = len(notes)
+    nmat = np.zeros((length, 3))
+    for i, n in enumerate(notes):
+        s = n.start / (alpha / 4)
+        e = n.end / (alpha / 4)
+        p = n.pitch
+        nmat[i, 0] = s
+        nmat[i, 1] = p
+        nmat[i, 2] = e - s
+    return nmat[np.argsort(nmat[:, 0])]
+
+def split_to_chunks(midi_nmat, target_length=32):
+    if midi_nmat.shape[0] > target_length:
+        res = []
+        for i in range(0, midi_nmat.shape[0], target_length):
+            nmat = midi_nmat[i: i+target_length, :]
+            start = np.floor(nmat[0, 0]) - 1 if np.floor(nmat[0, 0]) - 1 >= 0 else 0
+            nmat = nmat - np.array([start, 0, 0])
+            if nmat.shape[0] == target_length:
+                res.append(nmat)
+        print(np.amax(np.array(res)[:, :, 0]))
+        return res
+
+
+def split(midi_nmat, target_length=32):
+    res = []
+    if midi_nmat.shape[0] > target_length:
+        nmat = np.zeros((target_length, 3))
+        idx = 0
+        start = 0
+        added = False
+
+        for i in range(midi_nmat.shape[0]):
+            if idx == 0:
+                added = False
+                if i > 0:
+                    start = np.floor(midi_nmat[i - 1, 0]) - 1 if np.floor(midi_nmat[i - 1, 0]) - 1 >= 0 else 0
+                    nmat[0] = midi_nmat[i-1] - np.array([start, 0, 0])
+                    nmat[1] = midi_nmat[i] - np.array([start, 0, 0])
+                    idx +=1
+                else:
+                    start = np.floor(midi_nmat[i, 0]) - 1 if np.floor(midi_nmat[i, 0]) - 1 >= 0 else 0
+                    nmat[0] = midi_nmat[i] - np.array([start, 0, 0])
+                idx += 1
+                continue
+            if midi_nmat[i, 0] - start < target_length and idx < target_length:
+                    nmat[idx] = midi_nmat[i] - np.array([start, 0, 0])
+                    idx += 1
+            else:
+                res.append(nmat)
+                nmat = np.zeros((target_length, 3))
+                idx = 0
+                added = True
+
+        if not added:
+            res.append(nmat)
+    return res
+
+def create_data_set(path, out_path):
+    midi_files = [f for f in os.listdir(path) if f.endswith('.mid')]
+    nmats = []
+    for midi_file in midi_files:
+        midi_nmat = midi_to_nmat(os.path.join(path, midi_file))
+        for nmat in split(midi_nmat):
+            nmats.append(nmat)
+    split_to_test_and_train(np.array(nmats), out_path)
+
+def split_to_test_and_train(nmats, out_path):
+    if np.amin(nmats) < 0:
+        print("dupa")
+    if not os.path.isdir(out_path):
+        os.mkdir(out_path)
+    mask = np.random.rand(nmats.shape[0]) <= 0.9
+
+    train_nmats = nmats[mask]
+    train_length = np.array([train_nmat.shape[0] for train_nmat in train_nmats])
+    test_nmats = nmats[~mask]
+    test_length = np.array([test_nmat.shape[0] for test_nmat in test_nmats])
+
+    np.save(os.path.join(out_path, "nmat_train.npy"), train_nmats)
+    np.save(os.path.join(out_path, "nmat_train_length.npy"), train_length)
+    np.save(os.path.join(out_path, "nmat_val.npy"), test_nmats)
+    np.save(os.path.join(out_path, "nmat_val_length.npy"), test_length)
+
+
+
+create_data_set("D:/Tomek/PW-informatyka/Magisterka/Magisterka/EMOPIA_2.1/midis", "D:/Tomek/PW-informatyka/Magisterka/Magisterka/MUSEBERT/musebert/data")
+
+

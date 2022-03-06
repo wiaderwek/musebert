@@ -7,6 +7,9 @@ default pad lengths
 """
 pad_length100 = 100
 
+pad_length_NONE = None
+pad_length32 = 32
+
 """
 default R_base to R_fac conversion
 """
@@ -20,6 +23,15 @@ w_dist0 = Sampler(-3, 4,
 default_autoenc_dict = {
     'nmat_pad_length': pad_length100,
     'atr_mat_pad_length': pad_length100,
+    'estimate_ep': True,
+    'eo_dist': eo_dist0,
+    'ep_dist': ep_dist0,
+    'w_dist': w_dist0
+}
+
+generation_autoenc_dict = {
+    'nmat_pad_length': pad_length32,
+    'atr_mat_pad_length': pad_length32,
     'estimate_ep': True,
     'eo_dist': eo_dist0,
     'ep_dist': ep_dist0,
@@ -45,6 +57,15 @@ default_corrupter_dict = {
 all_corrupter_dict = {
     'corrupt_col_ids': (0, 1, 2, 3, 4, 5, 6),
     'pad_length': pad_length100,
+    'mask_ratio': 0.15,
+    'unchange_ratio': 0.1,
+    'unknown_ratio': 0.8,
+    'relmat_cpt_ratio': 0.3
+}
+
+music_corrupter_dict = {
+    'corrupt_col_ids': (0, 1, 2, 3, 4, 5, 6),
+    'pad_length': pad_length32,
     'mask_ratio': 0.15,
     'unchange_ratio': 0.1,
     'unknown_ratio': 0.8,

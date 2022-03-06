@@ -149,6 +149,10 @@ def encode_note_mat_to_atr_mat(nmat,
     # output row [5: 7]: d_hlf, d_sqv
     atr_mat[0: length, 5:] = dur_to_dur_attributes(dur)
 
+    if np.amin(atr_mat) < 0:
+        print(atr_mat)
+    if np.amax(atr_mat) > 14:
+        print(atr_mat)
     return atr_mat, (ep,)
 
 
@@ -296,6 +300,7 @@ class NoteAttributeAutoEncoder:
 
     def __init__(self, eo_dist, ep_dist, w_dist, estimate_ep=True,
                  nmat_pad_length=100, atr_mat_pad_length=100, _fast_mode=True):
+                 #nmat_pad_length=1, atr_mat_pad_length=1, _fast_mode=True):
         """
         :param eo_dist: Random noise added to onset attribute encode.
         :param ep_dist: Random noise added to pitch attribute encode.

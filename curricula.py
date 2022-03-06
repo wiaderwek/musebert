@@ -6,7 +6,7 @@ from curriculum_preset import *
 
 
 def prepare_data_loaders(atr_autoenc, corrupter, batch_size):
-    train_set = PolyphonicDataset(NoteMatrixDataset.get_train_dataset(), -6, 5,
+    train_set = PolyphonicDataset(NoteMatrixDataset.get_train_dataset(), 0, 5,
                                   atr_autoenc, corrupter)
     val_set = PolyphonicDataset(NoteMatrixDataset.get_val_dataset(), 0, 0,
                                 atr_autoenc, corrupter)
@@ -73,6 +73,11 @@ class Curriculum:
         model = self.prepare_model(device)
         return data_loaders, model
 
+# curriculum for used for generation
+music_curriculum = Curriculum(generation_autoenc_dict,
+                            music_corrupter_dict,
+                            all_model_dict,
+                            all_train_dict)
 
 # curriculum for used for pre-training
 all_curriculum = Curriculum(default_autoenc_dict,

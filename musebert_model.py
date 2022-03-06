@@ -104,6 +104,7 @@ class MuseBERT(PytorchModel):
             if i in self.loss_inds:
                 l_ind = self.lout_inds[i]
                 r_ind = self.rout_inds[i]
+                print("atr_loss: {}, {}, {}".format( i, l_ind, r_ind))
                 return (self.lossf(recon[:, l_ind: r_ind],
                                    tgt[:, i]) * w).sum()
             else:
@@ -147,7 +148,8 @@ class MuseBERT(PytorchModel):
     def init_model(cls, N=12, h=8, d_model=128, d_ff=512, non_linear=None,
                    relation_vocab_sizes=(5, 5, 5, 5),
                    in_dims=(15, 15, 15, 15, 15, 15, 15),
-                   out_dims=(9, 7, 7, 3, 12, 5, 8),
+                   #out_dims=(9, 7, 7, 3, 12, 5, 8),
+                   out_dims=(15, 15, 15, 15, 15, 15, 15),
                    loss_inds=(1, 3, 4, 5, 6),
                    dropout=0.1):
         """Easier way to initialize a MuseBERT"""

@@ -1,5 +1,5 @@
 from torch.optim.lr_scheduler import LambdaLR
-
+import numpy as np
 
 def get_linear_schedule_with_warmup(optimizer, num_warmup_steps,
                                     num_training_steps, final_lr_factor,
@@ -35,4 +35,6 @@ def augment_note_matrix(nmat, length, shift):
     """Pitch shift a note matrix in R_base format."""
     aug_nmat = nmat.copy()
     aug_nmat[0: length, 1] += shift
+    if np.amin(aug_nmat) < 0:
+        print("augment_note_matrix")
     return aug_nmat
