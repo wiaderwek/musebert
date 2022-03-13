@@ -74,7 +74,7 @@ def train_musebert(parallel: bool, curriculum: Curriculum,
     optimizer_scheduler = OptimizerScheduler(optimizer, scheduler, clip)
 
     # tensorboard writers
-    writer_names = ['loss', 'o_bt', 'o_sub', 'p_hig', 'p_reg',
+    writer_names = ['loss', 'emo', 'o_bt', 'o_sub', 'p_hig', 'p_reg',
                     'p_deg', 'd_hlf', 'd_sqv']
     tags = {'loss': None}
     summary_writers = SummaryWriters(writer_names, tags,

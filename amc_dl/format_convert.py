@@ -3,6 +3,8 @@ import pretty_midi as pm
 import os
 import random
 
+EMOTION_CLASS_TO_VAL = {"Q1": 1, "Q2": 2, "Q3": 3, "Q4": 4}
+
 
 
 
@@ -394,8 +396,6 @@ def create_data_set(path, out_path):
     split_to_test_and_train(np.array(nmats), out_path)
 
 def split_to_test_and_train(nmats, out_path):
-    if np.amin(nmats) < 0:
-        print("dupa")
     if not os.path.isdir(out_path):
         os.mkdir(out_path)
     mask = np.random.rand(nmats.shape[0]) <= 0.9
@@ -410,8 +410,30 @@ def split_to_test_and_train(nmats, out_path):
     np.save(os.path.join(out_path, "nmat_val.npy"), test_nmats)
     np.save(os.path.join(out_path, "nmat_val_length.npy"), test_length)
 
+def create_emotional_data_set(path, out_path):
+    midi_files = get_midi_with_emotion_classes(path)
+    nmats = []
+    for emotion_class in EMOTION_CLASS_TO_VAL.keys():
+        for midi_file in midi_files[emotion_class]:
+            midi_nmat = midi_to_nmat(os.path.join(path, midi_file))
+            for nmat in split(midi_nmat):
+                nmat = np.hstack(
+                    (np.atleast_2d(np.full(nmat.shape[0], EMOTION_CLASS_TO_VAL[emotion_class])).T, nmat))
+                nmats.append(nmat)
+    split_to_test_and_train(np.array(nmats), out_path)
+
+def get_midi_with_emotion_classes(path):
+    midi_files_emotion_classes = dict()
+    midi_files_emotion_classes["Q1"] = [f for f in os.listdir(path) if f.endswith('.mid') and f.startswith("Q1")]
+    midi_files_emotion_classes["Q2"] = [f for f in os.listdir(path) if f.endswith('.mid') and f.startswith("Q2")]
+    midi_files_emotion_classes["Q3"] = [f for f in os.listdir(path) if f.endswith('.mid') and f.startswith("Q3")]
+    midi_files_emotion_classes["Q4"] = [f for f in os.listdir(path) if f.endswith('.mid') and f.startswith("Q4")]
+
+    return midi_files_emotion_classes
 
 
-create_data_set("D:/Tomek/PW-informatyka/Magisterka/Magisterka/EMOPIA_2.1/midis", "D:/Tomek/PW-informatyka/Magisterka/Magisterka/MUSEBERT/musebert/data")
+#create_data_set("D:/Tomek/PW-informatyka/Magisterka/Magisterka/EMOPIA_2.1/midis", "D:/Tomek/PW-informatyka/Magisterka/Magisterka/MUSEBERT/musebert/data")
+create_emotional_data_set("D:/Tomek/PW-informatyka/Magisterka/Magisterka/EMOPIA_2.1/midis", "D:/Tomek/PW-informatyka/Magisterka/Magisterka/MUSEBERT/musebert/emotion_data")
+
 
 

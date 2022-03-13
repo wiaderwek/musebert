@@ -30,11 +30,15 @@ def get_linear_schedule_with_warmup(optimizer, num_warmup_steps,
 
     return LambdaLR(optimizer, lr_lambda, last_epoch)
 
+def augment_emotional_note_matrix(nmat, length, shift):
+    """Pitch shift a note matrix in R_base format."""
+    aug_nmat = nmat.copy()
+    aug_nmat[0: length, 2] += shift
+    return aug_nmat
+
 
 def augment_note_matrix(nmat, length, shift):
     """Pitch shift a note matrix in R_base format."""
     aug_nmat = nmat.copy()
     aug_nmat[0: length, 1] += shift
-    if np.amin(aug_nmat) < 0:
-        print("augment_note_matrix")
     return aug_nmat

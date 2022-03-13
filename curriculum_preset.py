@@ -64,7 +64,7 @@ all_corrupter_dict = {
 }
 
 music_corrupter_dict = {
-    'corrupt_col_ids': (0, 1, 2, 3, 4, 5, 6),
+    'corrupt_col_ids': (1, 2, 3, 4, 5, 6, 7),
     'pad_length': pad_length32,
     'mask_ratio': 0.15,
     'unchange_ratio': 0.1,
@@ -117,7 +117,7 @@ default_model_dict = {
 
 # used with pre-training
 all_model_dict = {
-    'loss_inds': (0, 1, 2, 3, 4, 5, 6),
+    'loss_inds': (0, 1, 2, 3, 4, 5, 6, 7),
 }
 
 # used with onset, pitch and duration fine-tuning.
@@ -166,7 +166,7 @@ default_train_dict = {
 # used at pre-traning
 all_train_dict = {
     'batch_size': 128,
-    'beta': (1, 1, 1, 1, 1, 0.1, 0.1),
+    'beta': (1, 1, 1, 1, 1, 1, 0.1, 0.1),
     'lr_dict': default_lr_dict
 }
 

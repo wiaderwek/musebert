@@ -149,10 +149,46 @@ def encode_note_mat_to_atr_mat(nmat,
     # output row [5: 7]: d_hlf, d_sqv
     atr_mat[0: length, 5:] = dur_to_dur_attributes(dur)
 
-    if np.amin(atr_mat) < 0:
-        print(atr_mat)
-    if np.amax(atr_mat) > 14:
-        print(atr_mat)
+    return atr_mat, (ep,)
+
+
+def emotional_encode_note_mat_to_atr_mat(nmat,
+                               length=None,
+                               tgt_pad_length=None,
+                               eo=0,
+                               ep=0,
+                               estimate_ep=False,
+                               w=0):
+
+    # initialize attribute_matrix to record encoded info from nmat.
+    tgt_pad_length = nmat.shape[0] \
+        if tgt_pad_length is None else tgt_pad_length
+    atr_mat = np.zeros((tgt_pad_length, 8), dtype=np.int64)
+
+    # reassign length if length is None, assuming no padding.
+    length = nmat.shape[0] if length is None else length
+
+    # the trivial case returns the all-zero matrix.
+    if length == 0:
+        return atr_mat, None
+
+    # (o, p, d) in X_base.
+    emotion, onset, pitch, dur = \
+        nmat[0: length, 0], nmat[0: length, 1], nmat[0: length, 2], nmat[0: length, 3]
+
+    atr_mat[0: length, 0] = emotion
+
+    # output row [1: 3]: o_bt, o_sub
+    atr_mat[0: length, 1: 3] = onset_to_onset_attributes(onset, eo)
+
+    # estimate ep or use the given one
+    ep = estimate_ep_by_maxmin(pitch, w) if estimate_ep else ep
+    # output row [3: 6]: p_hig, p_reg, p_deg
+    atr_mat[0: length, 3: 6] = pitch_to_pitch_attributes(pitch, ep)
+
+    # output row [6: 8]: d_hlf, d_sqv
+    atr_mat[0: length, 6:] = dur_to_dur_attributes(dur)
+
     return atr_mat, (ep,)
 
 
@@ -217,6 +253,36 @@ def dur_attributes_to_dur(d_half, d_semiqvr):
 
     return d
 
+def decode_atr_mat_to_emotion_nmat(atr_mat, length=None, tgt_pad_length=None):
+    tgt_pad_length = atr_mat.shape[0] \
+        if tgt_pad_length is None else tgt_pad_length
+    nmat = np.zeros((tgt_pad_length, 4), dtype=np.int64)
+
+    # reassign length if length is None, assuming no padding.
+    length = atr_mat.shape[0] if length is None else length
+
+    # the trivial case returns the all-zero matrix.
+    if length == 0:
+        return nmat
+
+    emotion, onset_bt, onset_sub, pitch_hig, pitch_reg, pitch_deg, dur_hlf, dur_sqv = \
+        (atr_mat[0: length, i] for i in range(atr_mat.shape[1]))
+    # pitch_ranges = compute_pitch_register_range_indices(pitch_hig)
+
+    # row 0: emotion class
+    nmat[0: length, 0] = emotion
+
+    # row 1: onset
+    nmat[0: length, 1] = onset_attributes_to_onset(onset_bt, onset_sub)
+
+    # row 2: pitch
+    nmat[0: length, 2] = \
+        pitch_attributes_to_pitch(pitch_hig, pitch_reg, pitch_deg)
+
+    # row 3: duration
+    nmat[0: length, 3] = dur_attributes_to_dur(dur_hlf, dur_sqv)
+
+    return nmat
 
 def decode_atr_mat_to_nmat(atr_mat, length=None, tgt_pad_length=None):
     """
@@ -362,11 +428,25 @@ class NoteAttributeAutoEncoder:
                                                 w)
         return atr_mat, length
 
+    def _emotional_encode(self, nmat, length):
+        eo = self.eo_sampler()
+        ep = self.ep_sampler()
+        w = self.w_sampler()
+        atr_mat, _ = emotional_encode_note_mat_to_atr_mat(nmat, length,
+                                                self.atr_mat_pad_length,
+                                                eo, ep,
+                                                self.estimate_ep,
+                                                w)
+        return atr_mat, length
+
     def encode(self, nmat, length, eo=None, ep=None, w=None):
         if self._fast_mode:
             return self._partial_encode(nmat, length)
         else:
             return self._full_encode(nmat, length, eo, ep, w)
+
+    def emotional_encode(self, nmat, length, eo=None, ep=None, w=None):
+        return self._emotional_encode(nmat, length)
 
     def _full_decode(self, atr_mat, length):
         return decode_atr_mat_to_nmat(atr_mat, length, self.nmat_pad_length), \
@@ -380,3 +460,6 @@ class NoteAttributeAutoEncoder:
             return self._partial_decode(atr_mat, length)
         else:
             return self._full_decode(atr_mat, length)
+
+    def emotional_decode(self, atr_mat, length):
+        return decode_atr_mat_to_emotion_nmat(atr_mat, length, self.nmat_pad_length)

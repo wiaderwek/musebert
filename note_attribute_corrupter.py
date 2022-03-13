@@ -86,6 +86,85 @@ def compute_relation_mat_from_atr_mat(atr_mat, length):
     return relation_mat
 
 
+def compute_emotional_relation_mat_from_atr_mat(atr_mat, length):
+    """
+    Compute relation matrix of binary pitch and onset relations from atr_mat
+    (i.e. X_fac in the MuseBERT paper.)
+    - S = {o, p, o_bt, p_hig} relations are considered.
+    - The element in a relation matrix is an index indicating the relation.
+    - The index for relation matrix is hard-coded:
+      - 0: pad
+      - 1: equal
+      - 2: greater
+      - 3: less
+      - 4: Unknown
+
+    :param atr_mat: The X_fac of size (L, 7).
+    :param length: actual length of L (length without padding).
+      if None, length = atr_mat.shape[0]
+    :param unknown_inds: inds masked with UNK, a bool array.
+    :return: relation matrix of size (4, L, L).
+        Stacked onset and pitch relations in the order: (o, p, o_bt, p_hig)
+    """
+
+    # initialize relation matrix to record pitch and onset relation.
+    relation_mat = np.zeros((4, atr_mat.shape[0], atr_mat.shape[0]),
+                            dtype=np.int8)
+
+    # reassign length if length is None, assuming no padding.
+    length = atr_mat.shape[0] if length is None else length
+
+    # the trivial case returns the all-zero matrix.
+    if length == 0:
+        return relation_mat
+
+    relation_mat_ = np.zeros((4, length, length),
+                             dtype=np.int8)
+
+    def relation(x, f):
+        return f(np.expand_dims(x, 0), np.expand_dims(x, -1))
+
+    def eq_relation(x):
+        return relation(x, operator.__eq__)
+
+    def gt_relation(x):
+        return relation(x, operator.__gt__)
+
+    def lt_relation(x):
+        return relation(x, operator.__lt__)
+
+    def eq_gt_lt_relations(x):
+        eq_rel = eq_relation(x)
+        gt_rel = gt_relation(x)
+        lt_rel = lt_relation(x)
+        no_rel = np.logical_not(np.logical_or(np.logical_or(eq_rel, gt_rel),
+                                              lt_rel))
+        return np.stack([no_rel, eq_rel, gt_rel, lt_rel], 0)
+
+    def write_relation_on_mat(stacked_rel, i):
+        relation_mat_[i] = stacked_rel.astype(np.int8).argmax(0)
+
+    o_bt, o_sub, p_hig, p_reg, p_deg = \
+        (atr_mat[0: length, i] for i in range(1, 6))
+    pitch = pitch_attributes_to_pitch(p_hig, p_reg, p_deg)
+    onset = onset_attributes_to_onset(o_bt, o_sub)
+
+    # the following *_eqgtlt is a stacked (4, length, length) bool array.
+    # each layer is bool mat of no_rel, eq, gt, lt.
+    p_eqgtlt = eq_gt_lt_relations(pitch)
+    o_eqgtlt = eq_gt_lt_relations(onset)
+    p_hig_eqgtlt = eq_gt_lt_relations(p_hig)
+    o_bt_eqgtlt = eq_gt_lt_relations(o_bt)
+
+    # write each relation on the relation_mat_
+    for i, stk_rel in enumerate([o_eqgtlt, p_eqgtlt,
+                                 o_bt_eqgtlt, p_hig_eqgtlt]):
+        write_relation_on_mat(stk_rel, i)
+
+    relation_mat[:, 0: length, 0: length] = relation_mat_
+    return relation_mat
+
+
 def corrupt_relation_mat(relation_mat, mask, mask_val):
     """ Corrupt relation matrix by setting masked places to mask_val. """
     corrupted_rel_mat = relation_mat.copy()
@@ -362,6 +441,37 @@ class SimpleCorrupter(CorrupterTemplate):
 
         # compute relation matrices (replacement considered)
         rel_mat = compute_relation_mat_from_atr_mat(modify_only_mat, length)
+
+        # corrupt relation matrices (with mask only)
+        cpt_rel_mat = self.corrupt_rel_mat(rel_mat, length, cpt_atr_mat[2],
+                                           rel_mask)
+        return (*cpt_atr_mat, *cpt_rel_mat)
+
+
+    def compute_emotional_relmat_and_corrupt_atrmat_and_relmat(self, atr_mat, length,
+                                                     inds=None, rel_mask=None):
+        """
+        The entry method called by dataset class.
+
+        The corruption logic:
+        - X_fac is corrupted in BERT-like fashion.
+        - Relmat is computed and corrupted at the same time, because otherwise,
+          once note attributes are replaced, the relation should be recomputed.
+          1) We keep a record of intermediate corruption of X_fac where
+            replacement is applied but mask is not (i.e., modify_only_mat).
+          2) We compute the relation matrices of modify_only_mat as if it is
+            the ground truth data.
+          3) We generate a random sysmetrical mask to mask the relation
+            matrices.
+        """
+
+        # BERT-like corruption to X_Fac. The intermediate result is stored in
+        # modify_only_mat.
+        cpt_atr_mat = self.corrupt_atr_mat(atr_mat, length, inds)
+        modify_only_mat = cpt_atr_mat[3]
+
+        # compute relation matrices (replacement considered)
+        rel_mat = compute_emotional_relation_mat_from_atr_mat(modify_only_mat, length)
 
         # corrupt relation matrices (with mask only)
         cpt_rel_mat = self.corrupt_rel_mat(rel_mat, length, cpt_atr_mat[2],

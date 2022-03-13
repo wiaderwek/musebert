@@ -1,9 +1,18 @@
 from note_attribute_repr import NoteAttributeAutoEncoder, Sampler
 from note_attribute_corrupter import SimpleCorrupter
-from dataset import PolyphonicDataLoaders, PolyphonicDataset, NoteMatrixDataset
+from dataset import PolyphonicDataLoaders, PolyphonicDataset, NoteMatrixDataset, EmotionalPolyphonicDataset
 from musebert_model import MuseBERT
 from curriculum_preset import *
 
+def prepare_emotional_data_loaders(atr_autoenc, corrupter, batch_size):
+    train_set = EmotionalPolyphonicDataset(NoteMatrixDataset.get_train_dataset(), 0, 5,
+                                  atr_autoenc, corrupter)
+    val_set = EmotionalPolyphonicDataset(NoteMatrixDataset.get_val_dataset(), 0, 0,
+                                atr_autoenc, corrupter)
+    data_loaders = \
+        PolyphonicDataLoaders.get_loaders(batch_size, batch_size, train_set, val_set,
+                                          True, False)
+    return data_loaders
 
 def prepare_data_loaders(atr_autoenc, corrupter, batch_size):
     train_set = PolyphonicDataset(NoteMatrixDataset.get_train_dataset(), 0, 5,
@@ -54,6 +63,12 @@ class Curriculum:
         corrupter = SimpleCorrupter(**self.corrupter_dict)
         return prepare_data_loaders(autoenc, corrupter, self.train_dict['batch_size'])
 
+    def prepare_emotional_data(self):
+        # prepare data_loaders
+        autoenc = NoteAttributeAutoEncoder(**self.autoenc_dict)
+        corrupter = SimpleCorrupter(**self.corrupter_dict)
+        return prepare_emotional_data_loaders(autoenc, corrupter, self.train_dict['batch_size'])
+
     def prepare_model(self, device):
         return prepare_model(**self.model_dict).to(device)
 
@@ -69,7 +84,8 @@ class Curriculum:
         return self.train_dict['lr_dict']
 
     def __call__(self, device):
-        data_loaders = self.prepare_data()
+        #data_loaders = self.prepare_data()
+        data_loaders = self.prepare_emotional_data()
         model = self.prepare_model(device)
         return data_loaders, model
 

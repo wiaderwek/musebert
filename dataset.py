@@ -5,17 +5,17 @@ from amc_dl.torch_plus import DataLoaders
 from torch.utils.data import DataLoader
 from note_attribute_repr import NoteAttributeAutoEncoder
 from note_attribute_corrupter import SimpleCorrupter
-from utils import augment_note_matrix
+from utils import augment_note_matrix, augment_emotional_note_matrix
 
 
 class NoteMatrixDataset:
 
     """Dataset to read files in R_base format"""
 
-    train_path = 'data/nmat_train.npy'
-    train_length_path = 'data/nmat_train_length.npy'
-    val_path = 'data/nmat_val.npy'
-    val_length_path = 'data/nmat_val_length.npy'
+    train_path = 'emotion_data/nmat_train.npy'
+    train_length_path = 'emotion_data/nmat_train_length.npy'
+    val_path = 'emotion_data/nmat_val.npy'
+    val_length_path = 'emotion_data/nmat_val_length.npy'
     pad_length = 1
 
     def __init__(self, data, length, pad_length):
@@ -89,8 +89,6 @@ class PolyphonicDataset(Dataset):
         self.corrupter.fast_mode()
 
         # encode X_base to X_fac
-        if np.amin(nmat) < 0:
-            print(nmat)
         atr_mat, length = self.repr_autoenc.encode(nmat, length)
 
         # corrupt X_fac and relation matrices
@@ -104,6 +102,37 @@ class PolyphonicDataset(Dataset):
             cpt_relmat.astype(np.int8), mask.astype(np.int8), \
             inds.astype(bool), length
 
+class EmotionalPolyphonicDataset(PolyphonicDataset):
+
+    def generate_attention_mask(self, length):
+        mask = np.zeros((self.pad_length, self.pad_length), dtype=np.int8)
+        mask[0: length, 0: length] = 1
+        return mask
+
+    def __getitem__(self, item):
+        no = item // (self.shift_high - self.shift_low + 1)
+        shift = item % (self.shift_high - self.shift_low + 1) + self.shift_low
+        nmat, length = self.dataset[no]
+
+        # pitch-shift augmentation
+        nmat = augment_emotional_note_matrix(nmat, length, shift)
+
+        self.repr_autoenc.fast_mode()
+        self.corrupter.fast_mode()
+
+        # encode X_base to X_fac
+        atr_mat, length = self.repr_autoenc.emotional_encode(nmat, length)
+
+        # corrupt X_fac and relation matrices
+        cpt_atrmat, length, inds, _, cpt_relmat = self.corrupter.\
+            compute_emotional_relmat_and_corrupt_atrmat_and_relmat(atr_mat, length)
+
+        # square mask to mask out the pad tokens
+        mask = self.generate_attention_mask(length)
+
+        return atr_mat.astype(np.int64), cpt_atrmat.astype(np.int64), \
+            cpt_relmat.astype(np.int8), mask.astype(np.int8), \
+            inds.astype(bool), length
 
 class PolyphonicDataLoaders(DataLoaders):
 
