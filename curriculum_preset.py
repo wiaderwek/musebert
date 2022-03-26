@@ -65,11 +65,11 @@ all_corrupter_dict = {
 
 music_corrupter_dict = {
     'corrupt_col_ids': (1, 2, 3, 4, 5, 6, 7),
-    'pad_length': pad_length32,
-    'mask_ratio': 0.15,
-    'unchange_ratio': 0.1,
-    'unknown_ratio': 0.8,
-    'relmat_cpt_ratio': 0.3
+    'pad_length': pad_length100,
+    'mask_ratio': 1.,
+    'unchange_ratio': 0.,
+    'unknown_ratio': 0.,
+    'relmat_cpt_ratio': 1
 }
 
 

@@ -190,12 +190,12 @@ class CorrupterTemplate:
 
         self._fast_mode = True
 
-        self.unknown_values = (9, 7, 7, 3, 12, 5, 8)  # masked vocab id
+        self.unknown_values = (5, 9, 7, 7, 3, 12, 5, 8)  # masked vocab id
 
         # list(range(lb, ub) for lb, ub in zip(lower_bounds, upper_bounds))
         # is the vocab sizes of attributes.
-        self.lower_bounds = (0, 0, 0, 0, 0, 0, 0)
-        self.upper_bounds = (9, 7, 7, 3, 12, 5, 8)
+        self.lower_bounds = (0, 0, 0, 0, 0, 0, 0, 0)
+        self.upper_bounds = (5, 9, 7, 7, 3, 12, 5, 8)
 
         self.mask_val = 4  # mask_val (vocab_id) for relmat
 

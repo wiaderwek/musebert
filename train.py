@@ -97,4 +97,4 @@ def train_musebert(parallel: bool, curriculum: Curriculum,
 
 if __name__ == '__main__':
     # pre-training MuseBERT
-    train_musebert(parallel=False, curriculum=all_curriculum)
+    train_musebert(parallel=False, curriculum=music_curriculum)

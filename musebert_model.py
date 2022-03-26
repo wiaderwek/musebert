@@ -104,7 +104,6 @@ class MuseBERT(PytorchModel):
             if i in self.loss_inds:
                 l_ind = self.lout_inds[i]
                 r_ind = self.rout_inds[i]
-                print("atr_loss: {}, {}, {}".format( i, l_ind, r_ind))
                 return (self.lossf(recon[:, l_ind: r_ind],
                                    tgt[:, i]) * w).sum()
             else:

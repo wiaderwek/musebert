@@ -90,7 +90,7 @@ class Curriculum:
         return data_loaders, model
 
 # curriculum for used for generation
-music_curriculum = Curriculum(generation_autoenc_dict,
+music_curriculum = Curriculum(default_autoenc_dict,
                             music_corrupter_dict,
                             all_model_dict,
                             all_train_dict)

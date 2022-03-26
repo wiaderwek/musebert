@@ -256,7 +256,7 @@ def dur_attributes_to_dur(d_half, d_semiqvr):
 def decode_atr_mat_to_emotion_nmat(atr_mat, length=None, tgt_pad_length=None):
     tgt_pad_length = atr_mat.shape[0] \
         if tgt_pad_length is None else tgt_pad_length
-    nmat = np.zeros((tgt_pad_length, 4), dtype=np.int64)
+    nmat = np.zeros((tgt_pad_length, 3), dtype=np.int64)
 
     # reassign length if length is None, assuming no padding.
     length = atr_mat.shape[0] if length is None else length
@@ -265,22 +265,22 @@ def decode_atr_mat_to_emotion_nmat(atr_mat, length=None, tgt_pad_length=None):
     if length == 0:
         return nmat
 
-    emotion, onset_bt, onset_sub, pitch_hig, pitch_reg, pitch_deg, dur_hlf, dur_sqv = \
+    _, onset_bt, onset_sub, pitch_hig, pitch_reg, pitch_deg, dur_hlf, dur_sqv = \
         (atr_mat[0: length, i] for i in range(atr_mat.shape[1]))
     # pitch_ranges = compute_pitch_register_range_indices(pitch_hig)
 
     # row 0: emotion class
-    nmat[0: length, 0] = emotion
+    #nmat[0: length, 0] = emotion
 
-    # row 1: onset
-    nmat[0: length, 1] = onset_attributes_to_onset(onset_bt, onset_sub)
+    # row 0: onset
+    nmat[0: length, 0] = onset_attributes_to_onset(onset_bt, onset_sub)
 
-    # row 2: pitch
-    nmat[0: length, 2] = \
+    # row 1: pitch
+    nmat[0: length, 1] = \
         pitch_attributes_to_pitch(pitch_hig, pitch_reg, pitch_deg)
 
-    # row 3: duration
-    nmat[0: length, 3] = dur_attributes_to_dur(dur_hlf, dur_sqv)
+    # row 2: duration
+    nmat[0: length, 2] = dur_attributes_to_dur(dur_hlf, dur_sqv)
 
     return nmat
 
