@@ -69,7 +69,7 @@ music_corrupter_dict = {
     'mask_ratio': 1.,
     'unchange_ratio': 0.,
     'unknown_ratio': 0.,
-    'relmat_cpt_ratio': 1
+    'relmat_cpt_ratio': 0.3
 }
 
 
