@@ -46,13 +46,15 @@ def train_musebert(parallel: bool, curriculum: Curriculum,
     :param model_path: None or pre-trained model path.
     """
 
+    
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
     readme_fn = __file__
 
     clip = 1
     parallel = parallel if (torch.cuda.is_available() and
                             torch.cuda.device_count() > 1) else False
-
+    parallel = False
     # create data_loaders and initialize model specified by the curriculum.
     data_loaders, model = curriculum(device)
 

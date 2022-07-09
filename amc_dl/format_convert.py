@@ -391,7 +391,8 @@ def create_data_set(path, out_path):
     nmats = []
     for midi_file in midi_files:
         midi_nmat = midi_to_nmat(os.path.join(path, midi_file))
-        for nmat in split(midi_nmat):
+        for nmat in split(midi_nmat=midi_nmat, target_length=128):
+            print(nmat.shape)
             nmats.append(nmat)
     split_to_test_and_train(np.array(nmats), out_path)
 
@@ -404,7 +405,7 @@ def split_to_test_and_train(nmats, out_path):
     train_length = np.array([train_nmat.shape[0] for train_nmat in train_nmats])
     test_nmats = nmats[~mask]
     test_length = np.array([test_nmat.shape[0] for test_nmat in test_nmats])
-
+    
     np.save(os.path.join(out_path, "nmat_train.npy"), train_nmats)
     np.save(os.path.join(out_path, "nmat_train_length.npy"), train_length)
     np.save(os.path.join(out_path, "nmat_val.npy"), test_nmats)
@@ -416,7 +417,7 @@ def create_emotional_data_set(path, out_path):
     for emotion_class in EMOTION_CLASS_TO_VAL.keys():
         for midi_file in midi_files[emotion_class]:
             midi_nmat = midi_to_nmat(os.path.join(path, midi_file))
-            for nmat in split(midi_nmat):
+            for nmat in split(midi_nmat, target_length=100):
                 nmat = np.hstack(
                     (np.atleast_2d(np.full(nmat.shape[0], EMOTION_CLASS_TO_VAL[emotion_class])).T, nmat))
                 nmats.append(nmat)
@@ -433,7 +434,7 @@ def get_midi_with_emotion_classes(path):
 
 
 #create_data_set("D:/Tomek/PW-informatyka/Magisterka/Magisterka/EMOPIA_2.1/midis", "D:/Tomek/PW-informatyka/Magisterka/Magisterka/MUSEBERT/musebert/data")
-create_emotional_data_set("D:/Tomek/PW-informatyka/Magisterka/Magisterka/EMOPIA_2.1/midis", "D:/Tomek/PW-informatyka/Magisterka/Magisterka/MUSEBERT/musebert/emotion_data")
+create_emotional_data_set("C:/Users/rwiad/Documents/Tomek/emopia", "C:/Users/rwiad/Documents/Tomek/musebert-specificEmotionGeneration_v3/musebert-specificEmotionGeneration/emotion_data")
 
 
 

@@ -254,6 +254,8 @@ def dur_attributes_to_dur(d_half, d_semiqvr):
     return d
 
 def decode_atr_mat_to_emotion_nmat(atr_mat, length=None, tgt_pad_length=None):
+    print("decode")
+    print(atr_mat.shape)
     tgt_pad_length = atr_mat.shape[0] \
         if tgt_pad_length is None else tgt_pad_length
     nmat = np.zeros((tgt_pad_length, 3), dtype=np.int64)

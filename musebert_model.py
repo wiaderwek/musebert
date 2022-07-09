@@ -146,10 +146,10 @@ class MuseBERT(PytorchModel):
     @classmethod
     def init_model(cls, N=12, h=8, d_model=128, d_ff=512, non_linear=None,
                    relation_vocab_sizes=(5, 5, 5, 5),
-                   in_dims=(15, 15, 15, 15, 15, 15, 15, 15),
+                   in_dims=(30, 30, 30, 30, 30, 30, 30, 30),
                    #out_dims=(9, 7, 7, 3, 12, 5, 8),
-                   out_dims=(15, 15, 15, 15, 15, 15, 15, 15),
-                   loss_inds=(1, 3, 4, 5, 6),
+                   out_dims=(30, 30, 30, 30, 30, 30, 30, 30),
+                   loss_inds=(1, 2, 3, 4, 5, 6, 7),
                    dropout=0.1):
         """Easier way to initialize a MuseBERT"""
         name = 'musebert'

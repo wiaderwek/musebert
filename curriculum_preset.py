@@ -6,6 +6,7 @@ import numpy as np
 default pad lengths
 """
 pad_length100 = 100
+pad_length128 = 100
 
 pad_length_NONE = None
 pad_length32 = 32
@@ -21,8 +22,8 @@ w_dist0 = Sampler(-3, 4,
                   np.array([0.05, 0.05, 0.15, 0.5, 0.15, 0.05, 0.05]))
 
 default_autoenc_dict = {
-    'nmat_pad_length': pad_length100,
-    'atr_mat_pad_length': pad_length100,
+    'nmat_pad_length': pad_length128,
+    'atr_mat_pad_length': pad_length128,
     'estimate_ep': True,
     'eo_dist': eo_dist0,
     'ep_dist': ep_dist0,
@@ -46,7 +47,7 @@ Preset corrupters
 # For light corruption where o_bt and p_hig are not corrupted.
 default_corrupter_dict = {
     'corrupt_col_ids': (1, 3, 4, 5, 6),
-    'pad_length': pad_length100,
+    'pad_length': pad_length128,
     'mask_ratio': 0.15,
     'unchange_ratio': 0.1,
     'unknown_ratio': 0.8,
@@ -56,7 +57,7 @@ default_corrupter_dict = {
 # For pre-trained settings where all attributes are masked.
 all_corrupter_dict = {
     'corrupt_col_ids': (0, 1, 2, 3, 4, 5, 6),
-    'pad_length': pad_length100,
+    'pad_length': pad_length128,
     'mask_ratio': 0.15,
     'unchange_ratio': 0.1,
     'unknown_ratio': 0.8,
@@ -65,18 +66,18 @@ all_corrupter_dict = {
 
 music_corrupter_dict = {
     'corrupt_col_ids': (1, 2, 3, 4, 5, 6, 7),
-    'pad_length': pad_length100,
-    'mask_ratio': 1.,
-    'unchange_ratio': 0.,
-    'unknown_ratio': 0.,
-    'relmat_cpt_ratio': 0.3
+    'pad_length': pad_length128,
+    'mask_ratio': 0.4,
+    'unchange_ratio': 0.1,
+    'unknown_ratio': 0.8,
+    'relmat_cpt_ratio': 0.6
 }
 
 
 # Onset attributes masked: for fine-tuning onset predictor.
 onset_corrupter_dict = {
     'corrupt_col_ids': (0, 1),
-    'pad_length': pad_length100,
+    'pad_length': pad_length128,
     'mask_ratio': 0.15,
     'unchange_ratio': 0.1,
     'unknown_ratio': 0.8,
@@ -87,7 +88,7 @@ onset_corrupter_dict = {
 # Pitch attributes masked: for fine-tuning pitch predictor.
 pitch_corrupter_dict = {
     'corrupt_col_ids': (2, 3, 4),
-    'pad_length': pad_length100,
+    'pad_length': pad_length128,
     'mask_ratio': 0.15,
     'unchange_ratio': 0.1,
     'unknown_ratio': 0.8,
@@ -98,7 +99,7 @@ pitch_corrupter_dict = {
 # Duration attributes masked: for fine-tuning duration predictor.
 duration_corrupter_dict = {
     'corrupt_col_ids': (5, 6),
-    'pad_length': pad_length100,
+    'pad_length': pad_length128,
     'mask_ratio': 0.15,
     'unchange_ratio': 0.1,
     'unknown_ratio': 0.8,
@@ -135,8 +136,8 @@ default_lr_dict = {
     'lr': 5e-4,
     'final_lr_factor': 1e-2,
     'warmup': 15000,
-    'n_epoch': 100,
-    'final_epoch': 60
+    'n_epoch': 750,
+    'final_epoch': 750
 }
 
 
@@ -157,7 +158,7 @@ Preset training parameters
 
 # used with default corrupter
 default_train_dict = {
-    'batch_size': 128,
+    'batch_size': 32,
     'beta': (0, 1, 0, 1, 1, 0.1, 0.1),
     'lr_dict': default_lr_dict
 }
@@ -165,7 +166,7 @@ default_train_dict = {
 
 # used at pre-traning
 all_train_dict = {
-    'batch_size': 128,
+    'batch_size': 32,
     'beta': (1, 1, 1, 1, 1, 1, 0.1, 0.1),
     'lr_dict': default_lr_dict
 }
